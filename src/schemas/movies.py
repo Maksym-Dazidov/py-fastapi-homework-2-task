@@ -3,7 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from src.database.models import CountryModel, GenreModel, ActorModel, LanguageModel
+from src.database.models import CountryModel, MovieStatusEnum
 
 
 class MovieBase(BaseModel):
@@ -11,13 +11,13 @@ class MovieBase(BaseModel):
     date: datetime.date
     score: float
     overview: str
-    status: str
+    status: MovieStatusEnum
     budget: float
     revenue: float
     country: CountryModel
-    genres: list[GenreModel]
-    actors: list[ActorModel]
-    languages: list[LanguageModel]
+    genres: list[str]
+    actors: list[str]
+    languages: list[str]
 
 
 class MovieDetail(MovieBase):
@@ -25,8 +25,16 @@ class MovieDetail(MovieBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class MovieListItem(BaseModel):
+    id: int
+    name: str
+    date: datetime.date
+    score: float
+    overview: str
+
+
 class MovieList(BaseModel):
-    movies: list[MovieDetail]
+    movies: list[MovieListItem]
     prev_page: Optional[str]
     next_page: Optional[str]
     total_pages: int
@@ -38,10 +46,10 @@ class MovieCreate(MovieBase):
 
 
 class MovieUpdate(BaseModel):
-    name: str
-    date: datetime.date
-    score: float
-    overview: str
-    status: str
-    budget: float
-    revenue: float
+    name: Optional[str]
+    date: Optional[datetime.date]
+    score: Optional[float]
+    overview: Optional[str]
+    status: Optional[str]
+    budget: Optional[float]
+    revenue: Optional[float]
