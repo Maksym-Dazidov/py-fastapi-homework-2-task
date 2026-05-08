@@ -3,7 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from src.database.models import CountryModel, MovieStatusEnum
+from src.database.models import MovieStatusEnum
 
 
 class Country(BaseModel):
@@ -34,7 +34,7 @@ class MovieBase(BaseModel):
     status: MovieStatusEnum
     budget: float
     revenue: float
-    country: CountryModel
+    country: Country
     genres: list[Genre]
     actors: list[Actors]
     languages: list[Languages]
@@ -62,7 +62,7 @@ class MovieList(BaseModel):
 
 
 class MovieCreate(MovieBase):
-    pass
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MovieUpdate(BaseModel):

@@ -51,6 +51,17 @@ async def get_movie(movie_id: int, db: AsyncSession = Depends(get_db)):
 
 @router.post("/movies/")
 async def create_movie(movie_data: MovieCreate, db: AsyncSession = Depends(get_db)):
+    duplication = await db.scalar(select(MovieModel).where(
+        MovieModel.name == movie_data.name,
+        MovieModel.date == movie_data.date,
+    ))
+
+    if duplication:
+        raise HTTPException(
+            status_code=409,
+            detail=f"A movie with the name '{movie_data.name}' and release date '{movie_data.date}' already exists."
+        )
+
     movie = MovieModel(
         name=movie_data.name,
         date=movie_data.date,
@@ -64,6 +75,7 @@ async def create_movie(movie_data: MovieCreate, db: AsyncSession = Depends(get_d
         actors=movie_data.actor,
         languages=movie_data.language,
     )
+
     db.add(movie)
     await db.commit()
     await db.refresh(movie)
@@ -91,19 +103,11 @@ async def update_movie(movie_id: int, movie: MovieUpdate, db: AsyncSession = Dep
         db_movie.budget = movie.budget
     if movie.revenue is not None:
         db_movie.revenue = movie.revenue
-    if movie.country is not None:
-        db_movie.country = movie.country
-    if movie.genres is not None:
-        db_movie.genres = movie.genres
-    if movie.actors is not None:
-        db_movie.actors = movie.actors
-    if movie.languages is not None:
-        db_movie.languages = movie.languages
 
     db.add(db_movie)
     await db.commit()
-    await db.refresh(movie)
-    return movie
+    await db.refresh(db_movie)
+    return db_movie
 
 
 @router.delete("/movies/{movie_id}/")
