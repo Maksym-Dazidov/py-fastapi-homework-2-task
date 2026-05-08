@@ -12,7 +12,7 @@ from src.schemas.movies import MovieList, MovieCreate, MovieUpdate
 router = APIRouter()
 
 
-@router.get("/movies")
+@router.get("/movies/")
 async def get_movies(
         db: AsyncSession = Depends(get_db),
         page: int = Query(default=1, ge=1),
@@ -21,7 +21,7 @@ async def get_movies(
     total_items = await db.scalar(select(func.count()).select_from(MovieModel))
     total_pages = (total_items + per_page - 1) // per_page
     offset = (page - 1) * per_page
-    result = await db.execute(select(MovieModel).offset(offset).limit(per_page))
+    result = await db.execute(select(MovieModel).order_by(MovieModel.id.desc()).offset(offset).limit(per_page))
     movies = result.scalars().all()
 
     if not movies:
@@ -39,17 +39,17 @@ async def get_movies(
     )
 
 
-@router.get("/movies/{movie_id}")
+@router.get("/movies/{movie_id}/")
 async def get_movie(movie_id: int, db: AsyncSession = Depends(get_db)):
     movie = await db.get(MovieModel, movie_id)
 
     if not movie:
-        raise HTTPException(status_code=404, detail="Movie not found.")
+        raise HTTPException(status_code=404, detail="Movie with the given ID was not found")
 
     return movie
 
 
-@router.post("/movies")
+@router.post("/movies/")
 async def create_movie(movie_data: MovieCreate, db: AsyncSession = Depends(get_db)):
     movie = MovieModel(
         name=movie_data.name,
@@ -70,37 +70,48 @@ async def create_movie(movie_data: MovieCreate, db: AsyncSession = Depends(get_d
     return movie
 
 
-@router.patch("/movies/{movie_id}")
+@router.patch("/movies/{movie_id}/")
 async def update_movie(movie_id: int, movie: MovieUpdate, db: AsyncSession = Depends(get_db)):
     db_movie = await db.get(MovieModel, movie_id)
 
-    if not movie:
-        raise HTTPException(status_code=404, detail="Movie not found.")
+    if not db_movie:
+        raise HTTPException(status_code=404, detail="Movie with the given ID was not found")
 
-    db_movie.name = movie.name
-    db_movie.date = movie.date
-    db_movie.score = movie.score
-    db_movie.overview = movie.overview
-    db_movie.status = movie.status
-    db_movie.budget = movie.budget
-    db_movie.revenue = movie.revenue
-    db_movie.country = movie.country
-    db_movie.genres = movie.genres
-    db_movie.actors = movie.actors
-    db_movie.languages = movie.languages
+    if movie.name is not None:
+        db_movie.name = movie.name
+    if movie.date is not None:
+        db_movie.date = movie.date
+    if movie.score is not None:
+        db_movie.score = movie.score
+    if movie.overview is not None:
+        db_movie.overview = movie.overview
+    if movie.status is not None:
+        db_movie.status = movie.status
+    if movie.budget is not None:
+        db_movie.budget = movie.budget
+    if movie.revenue is not None:
+        db_movie.revenue = movie.revenue
+    if movie.country is not None:
+        db_movie.country = movie.country
+    if movie.genres is not None:
+        db_movie.genres = movie.genres
+    if movie.actors is not None:
+        db_movie.actors = movie.actors
+    if movie.languages is not None:
+        db_movie.languages = movie.languages
 
-    db.add(movie)
+    db.add(db_movie)
     await db.commit()
     await db.refresh(movie)
     return movie
 
 
-@router.delete("/movies/{movie_id}")
+@router.delete("/movies/{movie_id}/")
 async def delete_movie(movie_id: int, db: AsyncSession = Depends(get_db)):
     movie = await db.get(MovieModel, movie_id)
 
     if not movie:
-        raise HTTPException(status_code=404, detail="Movie not found.")
+        raise HTTPException(status_code=404, detail="Movie with the given ID was not found")
 
     await db.delete(movie)
     await db.commit()

@@ -6,6 +6,26 @@ from pydantic import BaseModel, ConfigDict
 from src.database.models import CountryModel, MovieStatusEnum
 
 
+class Country(BaseModel):
+    id: int
+    code: str
+    name: Optional[str]
+
+
+class Genre(BaseModel):
+    id: int
+    name: str
+
+
+class Actors(BaseModel):
+    id: int
+    name: str
+
+class Languages(BaseModel):
+    id: int
+    name: str
+
+
 class MovieBase(BaseModel):
     name: str
     date: datetime.date
@@ -15,9 +35,9 @@ class MovieBase(BaseModel):
     budget: float
     revenue: float
     country: CountryModel
-    genres: list[str]
-    actors: list[str]
-    languages: list[str]
+    genres: list[Genre]
+    actors: list[Actors]
+    languages: list[Languages]
 
 
 class MovieDetail(MovieBase):
@@ -50,6 +70,6 @@ class MovieUpdate(BaseModel):
     date: Optional[datetime.date]
     score: Optional[float]
     overview: Optional[str]
-    status: Optional[str]
+    status: Optional[MovieStatusEnum]
     budget: Optional[float]
     revenue: Optional[float]
